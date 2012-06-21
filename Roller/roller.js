@@ -30,10 +30,12 @@ var Roller = function () {
 	var from = 0;
 	var to = 0;
 	
-	var root = document.createElement("div"); 
+	var rollerParam = {};
+	var root = document.createElement("div");
+	var cache  = document.createElement("div");
 	var pad = [];
 	
-	var rollerParam = {};
+	
 	
 	var copyParam = function () {
 		var param = arguments;
@@ -41,8 +43,10 @@ var Roller = function () {
 	}
 	
 	var init = function () {
+		var base = rollerParam.base || document.body;
+		cache = rollerParam.cache || cache;
 		root.className = "root";
-		document.body.appendChild(root);
+		base.appendChild(root);
 	}
 	
 	var UI = function () {
@@ -51,25 +55,38 @@ var Roller = function () {
 	UI.root = root;
 	
 	UI.addPage = function (params) {
-		Current.newpad = document.createElement("div");
-		Current.newpad.className = "pad";
-		Current.newpad.innerHTML = params.innerHTML;
-		console.log(rollerParam.width);
-		switch ( rollerParam.fx ) {
-			case "translate":
-				Current.pad.position.left = pad.length * rollerParam.width;
-				Current.newpad.style.left =  Current.pad.position.left + "px";
-			case "fade":
-				Current.pad.zIndex ++;
-				//Current.pad.style.opacity = 1;
-				Current.newpad.style.zIndex =  Current.pad.zIndex * -1;
-				Current.newpad.style.opacity = 0;
-		}	
+		//添加一个新页面 但并不展示到screenbox
+		var newpad = {};
+		//newpad = document.createElement("div");
+		//newpad.className = "pad";
+		var nothing = 1;
 		
-		pad.push(Current.newpad);
-		root.appendChild(Current.newpad);
+		if (params.innerHTML){
+			newpad.innerHTML = params.innerHTML;
+			nothing = 0;
+		}
+		if (params.Id){
+			newpad  = document.getElementById(params.Id);
+			nothing = 0;
+		}
+		if (params.element){
+			newpad  = params.element;
+			nothing = 0;
+		}
 		
+		if(nothing == 1) {
+			return false;
+		}
 		
+		newpad.style.position = "absolute";
+		newpad.style.top = "0";
+		newpad.style.left =   ( pad.length ) * rollerParam.width + "px";
+		newpad.style.width = rollerParam.width + "px";
+		newpad.style.zIndex = pad.length * (-1);
+		//newpad.style.opacity = "0";
+		
+		pad.push(newpad);
+		root.appendChild(newpad);	
 	}
 	UI.show = function () {
 		
@@ -78,11 +95,22 @@ var Roller = function () {
 	
 	var forward = function () {
 		//向前滚动
-		this.UI.FX[ rollerParam.fx ] ("next");
+		if (Current.index < (pad.length - 1) ){
+			console.log("Current.index" + Current.index + ",pad.length:" + (pad.length ));
+			this.UI.FX[ rollerParam.fx ] (1);
+		}else{
+			//alert("outrange!" + Current.index + "," + (pad.length));
+		}
 	}
 	var backward = function () {
 		//向后滚动
-		this.UI.FX[ rollerParam.fx ] ("back");
+		console.log("Current.index:" + Current.index + ",pad.length:" + (pad.length));
+		if ( Current.index <= 0 ) {
+					Current.index = 0;
+					return false;
+		}
+		this.UI.FX[ rollerParam.fx ] (-1);
+		
 	}
 	var proto = Roller.prototype;
 	proto.UI = UI;
@@ -95,60 +123,216 @@ var Roller = function () {
 	
 	proto.rollto = function (num){
 		//roller的显示方法，用来滚动到某幅画面
-		
 	};
+	
+	
 	UI.FX = {
-		translate : function (method) {
-			var direction = {
-				"next" : 1,
-				"back" : -1
-			}
-			if( method == "back" ) {
-				if ( Current.index <= 0 ) {
-					Current.index = 0;
-					return false;
-				}
-			}	
-			
-			Current.position.left -= direction[method] * rollerParam.width;
-			Current.index += direction[method] ;
-			
+		translate : function (direction) {
+			console.log("fx CI before:"+Current.index);
+			Current.index += direction ;
+			console.log("fx CI after:"+Current.index);
+			Current.position.left -= direction * rollerParam.width;
 			
 			function onTransitionEnd () {
-				console.log("CI:" + Current.index + ",CPL:" + Current.position.left);
-				if( method == "back" ) {
+				
+				if( direction == -1 && pad.length >= 2 ) {
 					pad.splice( (pad.length-1), (pad.length-1) );
-					root.removeChild(root.childNodes[root.childNodes.length - 1]);
+					//root.removeChild(root.childNodes[root.childNodes.length - 1]);
+					cache.appendChild(root.childNodes[root.childNodes.length - 1]);
 				}
 				root.removeEventListener("webkitTransitionEnd",onTransitionEnd,false);
 			}
-			//root.style.left = Current.position.left + "px";
 			root.style.webkitTransitionProperty = "-webkit-transform";
 			root.style.webkitTransitionDuration = "0.5s";
-			root.style.webkitTransitionTimingFunction = "cubic-bezier(1, 0, 0.58, 1.0).";
+			root.style.webkitTransitionTimingFunction = "cubic-bezier(0, 0.42, 0.0, 1)";
 			root.style.webkitTransform = "translateX(" + Current.position.left + "px)";
 			root.addEventListener("webkitTransitionEnd",onTransitionEnd,false);
 		},
-		fade : function (method) {
-			var direction = {
-				"next" : 1,
-				"back" : -1
-			}
-			if( method == "back" ) {
-				if ( Current.index <= 0 ) {
-					Current.index = 0;
-					return false;
-				}
-			}	
-			
+		fade : function (direction) {
 			//Current.zIndex -= direction[method] * rollerParam.width;
-			Current.index += direction[method] ;
+			var i = Current.index;
+			var d = direction;
+			var current = pad[ i ];
+			var next = pad[ i + d];
 			
-			pad[Current.index].style.webkitTransitionProperty = "opacity";
-			pad[Current.index].style.webkitTransitionDuration = "2s";
-			pad[Current.index].style.webkitTransitionTimingFunction = "cubic-bezier(1, 0, 0.58, 1.0).";
-			pad[Current.index].style.opacity = "1";
+			var time = "0.5s";
+
+			
+			next.style.opacity = 0;
+			next.style.left = 0;
+			next.style.zIndex = 0;//将目标pad移到上层
+			current.style.zIndex = -1;//将当前pad移到下一层
+
+			function onTransitionEnd () {
+				//console.log(pad);
+				if( direction == -1 ) {
+					pad.splice( (pad.length-1), (pad.length-1) );
+					//root.removeChild(root.childNodes[root.childNodes.length - 1]);
+					cache.appendChild(root.childNodes[root.childNodes.length - 1]);
+				}
+				next.removeEventListener("webkitTransitionEnd",onTransitionEnd,false);
+			}
+		
+			current.style.webkitBackfaceVisibility = "hidden";
+			current.style.webkitTransitionProperty = "opacity";
+			current.style.webkitTransitionDuration = time;
+			current.style.webkitTransitionTimingFunction = "cubic-bezier(1, 0, 0.58, 1.0).";
+			
+	
+			next.style.webkitBackfaceVisibility = "hidden";
+			next.style.webkitTransitionProperty = "opacity";
+			next.style.webkitTransitionDuration = time;
+			next.style.webkitTransitionTimingFunction = "cubic-bezier(1, 0, 0.58, 1.0).";
+			next.addEventListener("webkitTransitionEnd",onTransitionEnd,false);
+
+			current.style.opacity = "0";
+			setTimeout(function(){
+				next.style.opacity = "1";
+			},10);
 			//root.addEventListener("webkitTransitionEnd",onTransitionEnd,false);
+			Current.index += direction ;
+		},
+		transcale : function (direction) {
+			var i = Current.index;
+			var d = direction;
+			var current = pad[ i ];
+			var next = pad[ i + d];
+			
+			console.log("fx CI before:"+Current.index);
+			Current.index += direction ;
+			console.log("fx CI after:"+Current.index);
+			Current.position.left -= direction * rollerParam.width;
+			
+			var animateNext = new Animate (next, "scaleIn",{
+	 			duration:"0.5s",
+	 			ease:"cubic-bezier(1.0, 0.58, 0, 0)",
+	 			delay:"0.2s",
+	 			fillmode:"both",
+	 			loop:"1"    
+	 			//set loop to "infinite" for non-stop repeat
+	 			//"1" for once by default
+	 		});
+	 		var animateCurrent = new Animate (current, "scaleOut",{
+	 			duration:"0.5s",
+	 			ease:"cubic-bezier(1.0, 0.58, 0, 0)",
+	 			delay:"0.2s",
+	 			fillmode:"both",
+	 			loop:"1"    
+	 			//set loop to "infinite" for non-stop repeat
+	 			//"1" for once by default
+	 		});
+		 		animateCurrent.onstart = function (){
+		 		//this function is not required
+		 		//	event.target.innerHTML = "Start";
+		 		};
+		 		animateCurrent.onend = function (){
+		 		//this function is not required
+		 		//	event.target.innerHTML = "End";
+		 		};
+		 		animateCurrent.onloop = function (){
+		 		//this function is not required
+		 		//	event.target.innerHTML = "loop";
+		 		};
+			
+			function onTransitionEnd () {
+				
+				if( direction == -1 && pad.length >= 2 ) {
+					pad.splice( (pad.length-1), (pad.length-1) );
+					//root.removeChild(root.childNodes[root.childNodes.length - 1]);
+					cache.appendChild(root.childNodes[root.childNodes.length - 1]);
+				}
+				root.removeEventListener("webkitTransitionEnd",onTransitionEnd,false);
+			}
+			root.style.webkitTransitionProperty = "-webkit-transform";
+			root.style.webkitTransitionDuration = "0.5s";
+			root.style.webkitTransitionTimingFunction = "cubic-bezier(1.0, 0.58, 0, 0)";
+			root.style.webkitTransform = "translateX(" + Current.position.left + "px)";
+			root.addEventListener("webkitTransitionEnd",onTransitionEnd,false);
+			
+			
+			animateCurrent.start();
+			animateNext.start();
+		},
+		transkew : function (direction) {
+			var i = Current.index;
+			var d = direction;
+			var current = pad[ i ];
+			var next = pad[ i + d];
+			
+			console.log("fx CI before:"+Current.index);
+			Current.index += direction ;
+			console.log("fx CI after:"+Current.index);
+			Current.position.left -= direction * rollerParam.width;
+			
+			var animateNext = new Animate (next, "scaleIn",{
+	 			duration:"1s",
+	 			ease:"ease-in",
+	 			delay:"0.2s",
+	 			fillmode:"both",
+	 			loop:"1"    
+	 			//set loop to "infinite" for non-stop repeat
+	 			//"1" for once by default
+	 		});
+	 		var animateCurrent = new Animate (current, "scaleOut",{
+	 			duration:"1s",
+	 			ease:"ease-in",
+	 			delay:"0.2s",
+	 			fillmode:"both",
+	 			loop:"1"    
+	 			//set loop to "infinite" for non-stop repeat
+	 			//"1" for once by default
+	 		}); 
+	 		var animateCurrent1 = new Animate (current, "flipOutY",{
+	 			duration:"1s",
+	 			ease:"ease-in",
+	 			delay:"0.2s",
+	 			fillmode:"both",
+	 			loop:"1"    
+	 			//set loop to "infinite" for non-stop repeat
+	 			//"1" for once by default
+	 		});
+	 		var animateNext1 = new Animate (next, "flipInYN",{
+	 			duration:"1s",
+	 			ease:"ease-in",
+	 			delay:"0.2s",
+	 			fillmode:"both",
+	 			loop:"1"    
+	 			//set loop to "infinite" for non-stop repeat
+	 			//"1" for once by default
+	 		});
+		 		animateCurrent.onstart = function (){
+		 		//this function is not required
+		 		//	event.target.innerHTML = "Start";
+		 		};
+		 		animateCurrent.onend = function (){
+		 		//this function is not required
+		 		//	event.target.innerHTML = "End";
+		 		};
+		 		animateCurrent.onloop = function (){
+		 		//this function is not required
+		 		//	event.target.innerHTML = "loop";
+		 		};	
+	 					
+			function onTransitionEnd () {
+				
+				if( direction == -1 && pad.length >= 2 ) {
+					pad.splice( (pad.length-1), (pad.length-1) );
+					//root.removeChild(root.childNodes[root.childNodes.length - 1]);
+					cache.appendChild(root.childNodes[root.childNodes.length - 1]);
+				}
+				root.removeEventListener("webkitTransitionEnd",onTransitionEnd,false);
+			}
+			root.style.webkitTransitionProperty = "-webkit-transform";
+			root.style.webkitTransitionDuration = "1s";
+			root.style.webkitTransitionTimingFunction = "cubic-bezier(1.0, 0.58, 0, 0)";
+			root.style.webkitTransform = "translateX(" + Current.position.left + "px)";
+			root.addEventListener("webkitTransitionEnd",onTransitionEnd,false);
+			
+			
+			animateCurrent.start();
+			animateCurrent1.start();
+			animateNext.start();
+			animateNext1.start();
 		}
 	}
 })();
