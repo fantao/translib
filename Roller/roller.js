@@ -258,14 +258,16 @@ var Roller = function () {
 			var d = direction;
 			var current = pad[ i ];
 			var next = pad[ i + d];
+			var fxnameCurrent = (direction > 0) ? "flipOutY":"flipOutYN";
+			var fxnameNext = (direction > 0) ? "flipInYN":"flipInYS";
 			
 			console.log("fx CI before:"+Current.index);
 			Current.index += direction ;
 			console.log("fx CI after:"+Current.index);
-			Current.position.left -= direction * rollerParam.width;
+			Current.position.left -= direction * rollerParam.width;			
 			
 			var animateNext = new Animate (next, "scaleIn",{
-	 			duration:"1s",
+	 			duration:"0.6s",
 	 			ease:"ease-in",
 	 			delay:"0.2s",
 	 			fillmode:"both",
@@ -274,7 +276,7 @@ var Roller = function () {
 	 			//"1" for once by default
 	 		});
 	 		var animateCurrent = new Animate (current, "scaleOut",{
-	 			duration:"1s",
+	 			duration:"0.6s",
 	 			ease:"ease-in",
 	 			delay:"0.2s",
 	 			fillmode:"both",
@@ -282,8 +284,8 @@ var Roller = function () {
 	 			//set loop to "infinite" for non-stop repeat
 	 			//"1" for once by default
 	 		}); 
-	 		var animateCurrent1 = new Animate (current, "flipOutY",{
-	 			duration:"1s",
+	 		var animateCurrent1 = new Animate (current, fxnameCurrent,{
+	 			duration:"0.6s",
 	 			ease:"ease-in",
 	 			delay:"0.2s",
 	 			fillmode:"both",
@@ -291,8 +293,8 @@ var Roller = function () {
 	 			//set loop to "infinite" for non-stop repeat
 	 			//"1" for once by default
 	 		});
-	 		var animateNext1 = new Animate (next, "flipInYN",{
-	 			duration:"1s",
+	 		var animateNext1 = new Animate (next, fxnameNext,{
+	 			duration:"0.6s",
 	 			ease:"ease-in",
 	 			delay:"0.2s",
 	 			fillmode:"both",
@@ -323,7 +325,7 @@ var Roller = function () {
 				root.removeEventListener("webkitTransitionEnd",onTransitionEnd,false);
 			}
 			root.style.webkitTransitionProperty = "-webkit-transform";
-			root.style.webkitTransitionDuration = "1s";
+			root.style.webkitTransitionDuration = "0.6s";
 			root.style.webkitTransitionTimingFunction = "cubic-bezier(1.0, 0.58, 0, 0)";
 			root.style.webkitTransform = "translateX(" + Current.position.left + "px)";
 			root.addEventListener("webkitTransitionEnd",onTransitionEnd,false);
@@ -332,6 +334,78 @@ var Roller = function () {
 			animateCurrent.start();
 			animateCurrent1.start();
 			animateNext.start();
+			animateNext1.start();
+		},
+		transRotate : function (direction) {
+			var i = Current.index;
+			var d = direction;
+			var current = pad[ i ];
+			var next = pad[ i + d];
+			var fxnameCurrent = (direction > 0) ? "rotateOutDownRight":"rotateOutDownLeft";
+			var fxnameNext = (direction > 0) ? "rotateInDownRight":"rotateInDownLeft";
+			
+			console.log("fx CI before:"+Current.index);
+			Current.index += direction ;
+			console.log("fx CI after:"+Current.index);
+			Current.position.left -= direction * rollerParam.width;			
+			
+			/*
+			var animateNext = new Animate (next, "rotateInUpleft",{
+	 			duration:"0.6s",
+	 			ease:"ease-in",
+	 			delay:"0.2s",
+	 			fillmode:"both",
+	 			loop:"1"    
+	 			//set loop to "infinite" for non-stop repeat
+	 			//"1" for once by default
+	 		});
+	 		var animateCurrent = new Animate (current, "rotateInDownLeft",{
+	 			duration:"0.6s",
+	 			ease:"ease-in",
+	 			delay:"0.2s",
+	 			fillmode:"both",
+	 			loop:"1"    
+	 			//set loop to "infinite" for non-stop repeat
+	 			//"1" for once by default
+	 		}); */
+	 		var animateCurrent1 = new Animate (current, fxnameCurrent,{
+	 			duration:"0.6s",
+	 			ease:"ease-in",
+	 			delay:"0.2s",
+	 			fillmode:"both",
+	 			loop:"1"    
+	 			//set loop to "infinite" for non-stop repeat
+	 			//"1" for once by default
+	 		});
+	 		var animateNext1 = new Animate (next, fxnameNext,{
+	 			duration:"0.6s",
+	 			ease:"ease-in",
+	 			delay:"0.2s",
+	 			fillmode:"both",
+	 			loop:"1"    
+	 			//set loop to "infinite" for non-stop repeat
+	 			//"1" for once by default
+	 		});
+	 					
+			function onTransitionEnd () {
+				
+				if( direction == -1 && pad.length >= 2 ) {
+					pad.splice( (pad.length-1), (pad.length-1) );
+					//root.removeChild(root.childNodes[root.childNodes.length - 1]);
+					cache.appendChild(root.childNodes[root.childNodes.length - 1]);
+				}
+				root.removeEventListener("webkitTransitionEnd",onTransitionEnd,false);
+			}
+			root.style.webkitTransitionProperty = "-webkit-transform";
+			root.style.webkitTransitionDuration = "0.6s";
+			root.style.webkitTransitionTimingFunction = "cubic-bezier(1.0, 0.58, 0, 0)";
+			root.style.webkitTransform = "translateX(" + Current.position.left + "px)";
+			root.addEventListener("webkitTransitionEnd",onTransitionEnd,false);
+			
+			
+			//animateCurrent.start();
+			animateCurrent1.start();
+			//animateNext.start();
 			animateNext1.start();
 		}
 	}
