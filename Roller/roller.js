@@ -144,7 +144,7 @@ var Roller = function () {
 			}
 			root.style.webkitTransitionProperty = "-webkit-transform";
 			root.style.webkitTransitionDuration = "0.5s";
-			root.style.webkitTransitionTimingFunction = "cubic-bezier(0, 0.42, 0.0, 1)";
+			root.style.webkitTransitionTimingFunction = "ease-in-out";
 			root.style.webkitTransform = "translateX(" + Current.position.left + "px)";
 			root.addEventListener("webkitTransitionEnd",onTransitionEnd,false);
 		},
@@ -176,13 +176,13 @@ var Roller = function () {
 			current.style.webkitBackfaceVisibility = "hidden";
 			current.style.webkitTransitionProperty = "opacity";
 			current.style.webkitTransitionDuration = time;
-			current.style.webkitTransitionTimingFunction = "cubic-bezier(1, 0, 0.58, 1.0).";
+			current.style.webkitTransitionTimingFunction = "ease-out";
 			
 	
 			next.style.webkitBackfaceVisibility = "hidden";
 			next.style.webkitTransitionProperty = "opacity";
 			next.style.webkitTransitionDuration = time;
-			next.style.webkitTransitionTimingFunction = "cubic-bezier(1, 0, 0.58, 1.0).";
+			next.style.webkitTransitionTimingFunction = "ease-in";
 			next.addEventListener("webkitTransitionEnd",onTransitionEnd,false);
 
 			current.style.opacity = "0";
@@ -205,8 +205,8 @@ var Roller = function () {
 			
 			var animateNext = new Animate (next, "scaleIn",{
 	 			duration:"0.5s",
-	 			ease:"cubic-bezier(1.0, 0.58, 0, 0)",
-	 			delay:"0.2s",
+	 			ease:"ease-in",
+	 			//delay:"0.2s",
 	 			fillmode:"both",
 	 			loop:"1"    
 	 			//set loop to "infinite" for non-stop repeat
@@ -214,8 +214,8 @@ var Roller = function () {
 	 		});
 	 		var animateCurrent = new Animate (current, "scaleOut",{
 	 			duration:"0.5s",
-	 			ease:"cubic-bezier(1.0, 0.58, 0, 0)",
-	 			delay:"0.2s",
+	 			ease:"ease-out",
+	 			//delay:"0.2s",
 	 			fillmode:"both",
 	 			loop:"1"    
 	 			//set loop to "infinite" for non-stop repeat
@@ -244,8 +244,8 @@ var Roller = function () {
 				root.removeEventListener("webkitTransitionEnd",onTransitionEnd,false);
 			}
 			root.style.webkitTransitionProperty = "-webkit-transform";
-			root.style.webkitTransitionDuration = "0.5s";
-			root.style.webkitTransitionTimingFunction = "cubic-bezier(1.0, 0.58, 0, 0)";
+			root.style.webkitTransitionDuration = "0.6s";
+			root.style.webkitTransitionTimingFunction = "ease-in-out";
 			root.style.webkitTransform = "translateX(" + Current.position.left + "px)";
 			root.addEventListener("webkitTransitionEnd",onTransitionEnd,false);
 			
